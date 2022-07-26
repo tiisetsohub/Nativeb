@@ -1,11 +1,13 @@
-import { StyleSheet, Text, View, Pressable, FlatList, Modal, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Pressable, FlatList, Modal, TextInput, StatusBar } from 'react-native';
 import { useState, useReducer } from 'react';
-import Header from './components/header';
+import Header from './components/Header.js';
+import Item from './components/Item.js';
+import Template from './components/Template.js';
 
 const reducer = (templates, action) => {
   switch (action.type) {
     case 'add':
-      return [...templates, newItem(action.payload.name)]
+      return [...templates, newItem(action.payload.name, action.payload.indexnum)]
     case 'remove':
       return templates.filter(templates => templates.name !== action.payload.name)
     default:
@@ -13,18 +15,24 @@ const reducer = (templates, action) => {
   }
 }
 
-const newItem = (name) => {
-  return {mesocyclename: name, microcycles: []}
+const newItem = (name, indexnum) => {
+  return { index: indexnum, title: name, movements: []}
 }
 
 export default function App() {
   const [templates, dispatch] = useReducer(reducer, []);
   const [templateName, setTemplateName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [templateModalVisible, settemplateModalVisible] = useState(false);
+  const [open, setopen] = useState(false);
+  const [focus, setFocus] = useState('');
 
+  const renderItem = ({ item }) => (
+    <Item title={item.title} settemplateModalVisible={settemplateModalVisible} item={item} setFocus={setFocus}/>
+  );
 
   const handleAddTemplate = () => {
-    dispatch({ type: 'add', payload: { name: templateName } })
+    dispatch({ type: 'add', payload: { name: templateName, indexnum: templates.length } })
     setModalVisible(!modalVisible)
     setTemplateName('')
 
@@ -62,7 +70,7 @@ export default function App() {
                 >
                   <Text style={styles.textminiheadadd}> Ｘ </Text>
                 </Pressable>
-                <Text style={styles.textminihead}>Add New Mesocycle</Text>
+                <Text style={styles.textminihead}>Add Mesocycle</Text>
               </View>
               <View style={styles.modalViewMid}>
                 <Text style={styles.text}>Mesocycle Name</Text>
@@ -83,6 +91,12 @@ export default function App() {
             </View>
           </View>
         </Modal>
+        <FlatList
+          data={templates}
+          renderItem={renderItem}
+          keyExtractor={item => item.index}
+        />
+        <Template templateModalVisible={templateModalVisible} settemplateModalVisible={settemplateModalVisible} focus={focus}/>
       </View>
     </View>
   );
@@ -143,18 +157,19 @@ const styles = StyleSheet.create({
   },
   viewscroll: {
     width: '95%',
-    backgroundColor: 'red'
+    flex: 1,
+    paddingTop: StatusBar.currentHeight,
+    marginHorizontal: 16,
+    marginBottom : 25
   },
   centeredView: {
     backgroundColor: '#606070', 
-    opacity : 0.8,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalView: {
   backgroundColor: 'white',
-  opacity: 1,
   width: '95%',
   borderRadius: 20,
   padding: 10,
@@ -197,5 +212,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
   },
+  
+
 
 });
